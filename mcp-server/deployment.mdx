@@ -1,0 +1,70 @@
+---
+title: "Edge topology"
+description: "Cloudflare bindings, provisioned state, and deployment gaps"
+icon: "cloud"
+---
+
+The server targets Cloudflare Workers. Statelessness removes the need for a Durable Object, so the substrate is a Worker plus two storage bindings.
+
+## Provisioned resources
+
+| Binding | Service | Resource | Identifier |
+| --- | --- | --- | --- |
+| `SKILL_REGISTRY` | Workers KV | `kovach-skill-registry` | `d9628656cc224976add3dcbf81419c9c` |
+| `TRACE_CONSENT` | D1 | `xv-trace-consent` | `ccb47e26-ffbd-41db-90a7-9a31af0e7534` |
+
+<Warning>
+  R2 is not enabled on this account. Any pathway that assumes object storage — archived skill bundles, large artifacts — is blocked until R2 is enabled from the dashboard. Until then archive entries must resolve to an external origin.
+</Warning>
+
+## Not yet deployed
+
+The Worker itself does not exist. The account holds one script, `summer-flower-b921`, which is an unmodified Workers AI starter template and is unrelated to this server. The registry KV namespace is provisioned but empty.
+
+## Configuration
+
+```jsonc wrangler.jsonc
+{
+  "name": "gc-mcp-server",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SKILL_REGISTRY",
+      "id": "d9628656cc224976add3dcbf81419c9c"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "TRACE_CONSENT",
+      "database_name": "xv-trace-consent",
+      "database_id": "ccb47e26-ffbd-41db-90a7-9a31af0e7534"
+    }
+  ]
+}
+```
+
+Binding identifiers are not credentials. Secrets belong in `wrangler secret put`, never in configuration or source.
+
+## Consent and trace schema
+
+`xv-trace-consent` holds three tables.
+
+| Table | Purpose |
+| --- | --- |
+| `subjects` | Subject identity and external reference |
+| `consent_grants` | Scope, legal basis, grant and revocation timestamps |
+| `trace_events` | Actor, action, artifact digest, and the grant relied upon |
+
+`trace_events.artifact_digest` is the join back to the registry: an event records which pinned artifact was in play, so a trace resolves to a specific version rather than a name.
+
+A grant is active when `revoked_at IS NULL`; a partial index covers that predicate. Revocation is recorded by setting `revoked_at`, never by deleting the row — an audit trail that can be erased is not an audit trail.
+
+<Note>
+  This schema was derived from the database name and the surrounding subject-sovereignty requirement, not recovered from a prior specification. Treat it as a starting shape and reconcile it against the canonical spec before writing production data.
+</Note>

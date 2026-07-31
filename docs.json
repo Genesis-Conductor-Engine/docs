@@ -22,6 +22,15 @@
             ]
           },
           {
+            "group": "MCP Server",
+            "icon": "plug",
+            "pages": [
+              "mcp-server/overview",
+              "mcp-server/skill-registry",
+              "mcp-server/deployment"
+            ]
+          },
+          {
             "group": "Customization",
             "pages": [
               "essentials/settings",
@@ -54,15 +63,6 @@
             "group": "API documentation",
             "pages": [
               "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
             ]
           }
         ]
@@ -118,5 +118,6 @@
       "github": "https://github.com/mintlify",
       "linkedin": "https://linkedin.com/company/mintlify"
     }
-  }
+  },
+  "description": "Genesis Conductor — MCP server, skill registry, and Cloudflare edge topology."
 }

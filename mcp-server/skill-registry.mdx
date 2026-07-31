@@ -1,0 +1,64 @@
+---
+title: "Skill registry"
+description: "Manifest schema, entry shapes, and digest pinning"
+icon: "box-archive"
+---
+
+The registry is the marketplace manifest for the `kovach-*` namespace. It is stored in Workers KV and read by the router at dispatch time.
+
+## Storage
+
+| Binding | Namespace | Key layout |
+| --- | --- | --- |
+| `SKILL_REGISTRY` | `kovach-skill-registry` | `manifest:latest`, `skill:<name>` |
+
+The full manifest lives under `manifest:latest`. Individual entries are denormalized to `skill:<name>` so a route lookup is a single read rather than a parse of the whole document.
+
+## Entry shapes
+
+A manifest entry takes one of two shapes. A resolver must handle both — assuming a single shape is the most common integration failure.
+
+<CodeGroup>
+
+```json Direct
+{
+  "url": "skill://<name>/SKILL.md",
+  "digest": "sha256:<hex>",
+  "frontmatter": {
+    "name": "<name>",
+    "description": "<trigger description>"
+  }
+}
+```
+
+```json Archive
+{
+  "frontmatter": {
+    "name": "<name>",
+    "description": "<trigger description>"
+  },
+  "archives": [
+    {
+      "url": "skill://<name>.tar.gz",
+      "mimeType": "application/gzip",
+      "digest": "sha256:<hex>"
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
+The direct shape carries `url` and `digest` at the top level and points at a single `SKILL.md`. The archive shape omits both, and instead carries an `archives` array whose members hold their own `url`, `mimeType`, and `digest`. Optional keys — `license`, `metadata`, `compatibility` — may appear inside `frontmatter` on either shape.
+
+## Digest pinning
+
+Every retrievable object carries a `sha256:` digest. Resolution verifies the digest before the content is admitted; a mismatch is a hard failure, not a warning. This is what makes a registry entry a claim that resolves to a specific artifact rather than to a mutable name.
+
+<Note>
+  A digest is only load-bearing if it is checked. A resolver that fetches by `url` and ignores `digest` provides no integrity guarantee over a plain URL fetch.
+</Note>
+
+## Description field
+
+The `description` in `frontmatter` is not prose — it is the trigger surface the classifier matches against. It should enumerate the phrasings and conditions that should activate the skill, and state what the skill does not cover. Descriptions written as summaries rather than triggers route poorly.
