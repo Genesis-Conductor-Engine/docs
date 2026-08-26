@@ -1,0 +1,34 @@
+---
+title: "Architecture"
+description: "Transport, tool surface, and the HAVIS Pareto routing classifier"
+icon: "sitemap"
+---
+
+The server is a TypeScript MCP implementation. It exposes seven tools over a stateless streamable HTTP transport and dispatches each call to one of four skill domains.
+
+## Transport
+
+Stateless streamable HTTP. No session affinity is held between requests, so any instance can serve any call and horizontal scaling requires no coordination layer. This is the property that makes the server deployable to an edge runtime without a Durable Object.
+
+<Warning>
+  Statelessness is a hard constraint, not a default. Any tool that accumulates per-client state across calls breaks the deployment model and must externalize that state to KV or D1.
+</Warning>
+
+## Skill domains
+
+| Domain | Scope |
+| --- | --- |
+| `mcp-builder` | Building and reviewing MCP servers |
+| `skill-creator` | Authoring, editing, and evaluating skills |
+| `web-artifacts-builder` | Multi-component web artifacts |
+| `algorithmic-art` | Seeded generative and parametric art |
+
+## Routing
+
+Inbound requests are classified before dispatch. The classifier applies a Pareto gate: a candidate route is admissible only if it improves at least one axis — correctness, latency, cost, or risk — without degrading the others. Where several routes remain admissible, they are ranked and the top-ranked route is taken rather than presented as a choice.
+
+When no route clears the gate, the classifier fails closed and returns the blocking condition instead of dispatching to a best-guess domain.
+
+## Evaluation
+
+The project ships an eval set alongside the scaffold. Routing changes are validated against it before promotion — the classifier is the component most likely to regress silently, since a wrong route still returns a plausible response.
