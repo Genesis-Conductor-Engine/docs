@@ -1,0 +1,3 @@
+[build]
+  command = "echo 'MDX docs ready for Netlify or GitBook'"
+  publish = "."

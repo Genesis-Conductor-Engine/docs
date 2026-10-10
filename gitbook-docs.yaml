@@ -1,0 +1,54 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+site:
+  title: Genesis Conductor Docs
+  structure:
+    - type: section
+      key: section-essentials
+      title: Essentials
+      path: essentials
+      default: true
+      children:
+        - type: space
+          key: space-essentials
+          title: Essentials
+          path: essentials
+          default: true
+          content:
+            directory: ./essentials
+    - type: section
+      key: section-ai-tools
+      title: AI Tools
+      path: ai-tools
+      children:
+        - type: space
+          key: space-ai-tools
+          title: AI Tools
+          path: ai-tools
+          default: true
+          content:
+            directory: ./ai-tools
+    - type: section
+      key: section-mcp
+      title: MCP Server
+      path: mcp-server
+      children:
+        - type: space
+          key: space-mcp
+          title: MCP Server
+          path: mcp
+          default: true
+          content:
+            directory: ./mcp-server
+    - type: section
+      key: section-api
+      title: API Reference
+      path: api
+      children:
+        - type: space
+          key: space-api
+          title: API Reference
+          path: api
+          default: true
+          content:
+            directory: ./api-reference
